@@ -22,6 +22,21 @@ element_t *element_new(char *s)
     return res;
 }
 
+/* Delete a element */
+element_t *remove_element(struct list_head *head,
+                          char *sp,
+                          size_t bufsize,
+                          list_head *target)
+{
+    element_t *res = list_entry(target, element_t, list);
+    if (sp && res->value) {
+        strncpy(sp, res->value, bufsize);
+        sp[bufsize - 1] = 0;
+    }
+    list_del(target);
+    return res;
+}
+
 /* Free element_t */
 void free_element(element_t *element)
 {
@@ -82,13 +97,17 @@ bool q_insert_tail(struct list_head *head, char *s)
 /* Remove an element from head of queue */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
-    return NULL;
+    if (!head || list_empty(head))
+        return NULL;
+    return remove_element(head, sp, bufsize, head->next);
 }
 
 /* Remove an element from tail of queue */
 element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 {
-    return NULL;
+    if (!head || list_empty(head))
+        return NULL;
+    return remove_element(head, sp, bufsize, head->prev);
 }
 
 /* Return number of elements in queue */
