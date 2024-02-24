@@ -10,6 +10,15 @@
  *   cppcheck-suppress nullPointer
  */
 
+/* Free element_t */
+void free_element(element_t *element)
+{
+    if (!element)
+        return;
+    free(element->value);
+    free(element);
+}
+
 
 /* Create an empty queue */
 struct list_head *q_new()
@@ -21,7 +30,18 @@ struct list_head *q_new()
 }
 
 /* Free all storage used by queue */
-void q_free(struct list_head *l) {}
+void q_free(struct list_head *l)
+{
+    struct list_head *tmp, *next;
+
+    list_for_each_safe (tmp, next, l) {
+        element_t *entry = list_entry(tmp, element_t, list);
+        list_del(tmp);
+        free_element(entry);
+    }
+
+    free(l);
+}
 
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
