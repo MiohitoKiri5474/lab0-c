@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include "list.h"
 
 #include "queue.h"
@@ -239,7 +240,26 @@ void q_sort(struct list_head *head, bool descend) {}
 int q_ascend(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+    struct list_head *cur, *safe;
+    char *mi = NULL;
+    q_reverse(head);  // the process will begin from the end, reverse first
+    list_for_each_safe (cur, safe, head) {
+        element_t *cur_entry = list_entry(cur, element_t, list);
+        if (cur != head->next && strcmp(cur_entry->value, mi) > 0) {
+            // skip at first element
+            list_del(cur);
+            free_element(cur_entry);
+        } else {
+            free(mi);  // importent! remind free the string before next strdup
+            mi = strdup(cur_entry->value);
+        }
+        cur_entry = NULL;
+    }
+    q_reverse(head);  // reverse back to original order
+    free(mi);
+    return q_size(head);
 }
 
 /* Remove every node which has a node with a strictly greater value anywhere to
@@ -247,7 +267,26 @@ int q_ascend(struct list_head *head)
 int q_descend(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    // same as q_ascend, but in different order
+    if (!head || list_empty(head))
+        return 0;
+    struct list_head *cur, *safe;
+    char *ma = NULL;
+    q_reverse(head);
+    list_for_each_safe (cur, safe, head) {
+        element_t *cur_entry = list_entry(cur, element_t, list);
+        if (cur != head->next && strcmp(cur_entry->value, ma) < 0) {
+            list_del(cur);
+            free_element(cur_entry);
+        } else {
+            free(ma);
+            ma = strdup(cur_entry->value);
+        }
+        cur_entry = NULL;
+    }
+    q_reverse(head);
+    free(ma);
+    return q_size(head);
 }
 
 /* Merge all the queues into one sorted queue, which is in ascending/descending
