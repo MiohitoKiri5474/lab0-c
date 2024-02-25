@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "list.h"
 
 #include "queue.h"
 
@@ -199,6 +200,35 @@ void q_reverse(struct list_head *head)
 void q_reverseK(struct list_head *head, int k)
 {
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
+    if (!head || list_empty(head))
+        return;
+    struct list_head *cur = head, *tmp;
+    do {
+        // check the rest of list have k nodes or more
+        bool flag = true;
+        tmp = cur->next;
+        for (int i = 0; i < k; i++) {
+            if (!tmp || tmp == head) {
+                flag = false;
+                break;
+            }
+            tmp = tmp->next;
+        }
+
+        // if the rest of list don't have enough nodes
+        if (!flag)
+            break;
+
+        // reverse the segment and splice it back to right position
+        LIST_HEAD(slice);
+        list_cut_position(&slice, cur, tmp->prev);
+        q_reverse(&slice);
+        list_splice_init(&slice, cur);
+
+        // move forward k nodes
+        for (int i = 0; i < k; i++)
+            cur = cur->next;
+    } while (cur != head);
 }
 
 /* Sort elements of queue in ascending/descending order */
