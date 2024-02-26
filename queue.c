@@ -21,6 +21,10 @@ element_t *element_new(char *s)
         return NULL;
     }
     res->value = strdup(s);
+    if (!res->value) {
+        free(res);
+        return NULL;
+    }
     return res;
 }
 
@@ -76,7 +80,7 @@ void q_free(struct list_head *l)
 bool q_insert_head(struct list_head *head, char *s)
 {
     element_t *element = element_new(s);
-    if (!element) {
+    if (!head || !element) {
         free(element);
         return false;
     }
@@ -88,7 +92,7 @@ bool q_insert_head(struct list_head *head, char *s)
 bool q_insert_tail(struct list_head *head, char *s)
 {
     element_t *element = element_new(s);
-    if (!element) {
+    if (!head || !element) {
         free(element);
         return false;
     }
