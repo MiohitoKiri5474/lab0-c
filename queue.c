@@ -155,14 +155,14 @@ bool q_delete_dup(struct list_head *head)
     bool last = false;
     list_for_each_safe (cur, safe, head) {
         element_t *entry = list_entry(cur, element_t, list);
-        if (last || (cur->next != head &&
+        bool match = cur->next != head &&
                      !strcmp(entry->value,
-                             list_entry(cur->next, element_t, list)->value))) {
-            last = true;
+                             list_entry(cur->next, element_t, list)->value);
+        if (last || match) {
             list_del(cur);
             free_element(entry);
-        } else
-            last = false;
+        }
+        last = match;
     }
     return true;
 }
@@ -173,18 +173,8 @@ void q_swap(struct list_head *head)
     // https://leetcode.com/problems/swap-nodes-in-pairs/
     if (!head || list_empty(head) || q_size(head) < 2)
         return;
-
-    struct list_head *cur = head;
-    do {
-        element_t *node_1 = list_entry(cur->next, element_t, list);
-        element_t *node_2 = list_entry(cur->next->next, element_t, list);
-
-        list_del(&node_1->list);
-        list_del(&node_2->list);
-        list_add(&node_1->list, cur);
-        list_add(&node_2->list, cur);
-        cur = cur->next->next;
-    } while (cur != head && cur->next != head && cur->next && cur->next->next);
+    // the previous version have bug, using q_reverseK instead
+    q_reverseK(head, 2);
 }
 
 /* Reverse elements in queue */
@@ -233,7 +223,49 @@ void q_reverseK(struct list_head *head, int k)
 }
 
 /* Sort elements of queue in ascending/descending order */
-void q_sort(struct list_head *head, bool descend) {}
+void q_sort(struct list_head *head, bool descend)
+{
+    int len = q_size(head);  // get the length of list
+    if (!head || len < 2)
+        return;
+
+    LIST_HEAD(left);
+    struct list_head *mid = head->next, *fast = head->next, *safe, *cur, *tmp;
+    while (fast != head &&
+           fast->next != head) {  // get the mid position by using the same way
+                                  // in q_delete_mid
+        fast = fast->next->next;
+        mid = mid->next;
+    }
+
+    // split the list into two seq
+    list_cut_position(&left, head, mid->prev);
+
+    // sort each side
+    q_sort(&left, descend);
+    q_sort(head, descend);
+
+    tmp = head->next;
+    list_for_each_safe (cur, safe, &left) {  // merge lists
+        while (tmp != head) {  // find a place for current element_t object
+            char *cur_value = list_entry(cur, element_t, list)->value;
+            char *tmp_value = list_entry(tmp, element_t, list)->value;
+            if ((!descend && strcmp(cur_value, tmp_value) <= 0) ||
+                (descend && strcmp(cur_value, tmp_value) >= 0)) {
+                // the element is allowed be placed in this position
+                list_del(cur);
+                list_add(cur, tmp->prev);
+                break;  // current element is placed, break the loop
+            }
+            // if not, keep moving
+            tmp = tmp->next;
+        }
+        if (tmp == head) {  // if head is already at the tail
+            list_del(cur);
+            list_add_tail(cur, head);
+        }
+    }
+}
 
 /* Remove every node which has a node with a strictly less value anywhere to
  * the right side of it */
