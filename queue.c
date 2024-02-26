@@ -58,6 +58,10 @@ struct list_head *q_new()
 {
     struct list_head *res =
         (struct list_head *) malloc(sizeof(struct list_head));
+    if (!res) {
+        free(res);
+        return NULL;
+    }
     INIT_LIST_HEAD(res);
     return res;
 }
@@ -65,6 +69,8 @@ struct list_head *q_new()
 /* Free all storage used by queue */
 void q_free(struct list_head *l)
 {
+    if (!l)
+        return;
     struct list_head *tmp, *next;
 
     list_for_each_safe (tmp, next, l) {
