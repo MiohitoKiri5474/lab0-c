@@ -260,8 +260,8 @@ void q_sort(struct list_head *head, bool descend)
         while (tmp != head) {  // find a place for current element_t object
             char *cur_value = list_entry(cur, element_t, list)->value;
             char *tmp_value = list_entry(tmp, element_t, list)->value;
-            if ((!descend && strcmp(cur_value, tmp_value) <= 0) ||
-                (descend && strcmp(cur_value, tmp_value) >= 0)) {
+            int res = strcmp(cur_value, tmp_value);
+            if ((!descend && res <= 0) || (descend && res >= 0)) {
                 // the element is allowed be placed in this position
                 list_del(cur);
                 list_add(cur, tmp->prev);
@@ -270,7 +270,7 @@ void q_sort(struct list_head *head, bool descend)
             // if not, keep moving
             tmp = tmp->next;
         }
-        if (tmp == head) {  // if head is already at the tail
+        if (tmp == head) {
             list_del(cur);
             list_add_tail(cur, head);
         }
