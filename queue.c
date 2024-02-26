@@ -326,5 +326,40 @@ int q_descend(struct list_head *head)
 int q_merge(struct list_head *head, bool descend)
 {
     // https://leetcode.com/problems/merge-k-sorted-lists/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+    struct list_head *cur, *safe, *cur2, *safe2, *tmp;
+    queue_contex_t *first = list_entry(head->next, queue_contex_t, chain);
+    int sz_res = first->size;
+    list_for_each_safe (cur, safe, head) {
+        if (cur == &first->chain)
+            continue;
+        queue_contex_t *entry = list_entry(cur, queue_contex_t, chain);
+        sz_res += entry->size;
+        tmp = first->q->next;
+        list_for_each_safe (
+            cur2, safe2,
+            entry->q) {                // merge the first list and current list
+            while (tmp != first->q) {  // find a place for current element_t
+                                       // object in first list
+                char *cur_value = list_entry(cur2, element_t, list)->value;
+                char *tmp_value = list_entry(tmp, element_t, list)->value;
+
+                if ((!descend && strcmp(cur_value, tmp_value) <= 0) ||
+                    (descend && strcmp(cur_value, tmp_value) >= 0)) {
+                    // the element is allowed be placed in this position
+                    list_del(cur2);
+                    list_add(cur2, tmp->prev);
+                    break;  // current element is placed, break the loop
+                }
+                // if not, keep moving
+                tmp = tmp->next;
+            }
+            if (tmp == first->q) {
+                list_del(cur2);
+                list_add_tail(cur2, first->q);
+            }
+        }
+    }
+    return sz_res;
 }
