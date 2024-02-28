@@ -48,9 +48,10 @@ element_t *remove_element(struct list_head *target, char *sp, size_t bufsize)
 /* Swap 2 nodes */
 void swap(struct list_head *a, struct list_head *b)
 {
-    struct list_head *tmp = b->next;
-    list_move(b, a);
-    list_move(a, tmp->prev);
+    struct list_head *ap = a->prev, *bp = b->prev;
+    if (ap != b)
+        list_move(b, ap);
+    list_move(a, bp);
 }
 
 /* Create an empty queue */
@@ -371,4 +372,30 @@ int q_merge(struct list_head *head, bool descend)
         }
     }
     return sz_res;
+}
+
+/* Shuffle the list by using Fisher-Yates shuffle Algorithm */
+void q_shuffle(struct list_head *head)
+{
+    if (!head || list_empty(head))
+        return;
+
+
+    int len = q_size(head);
+    if (len == 1)  // don't need to process
+        return;
+    struct list_head *cur, *safe, *target;
+    list_for_each_safe (cur, safe, head) {
+        len--;
+        if (len == 0)  // last element
+            break;
+        target = cur;
+        int tms = rand() % len;
+        if (tms == 0)  // don't need to swap
+            continue;
+        for (int i = 0; i < tms; i++)
+            target = target->next;
+        swap(target, cur);
+    }
+    puts("end of q_shuffle");
 }
